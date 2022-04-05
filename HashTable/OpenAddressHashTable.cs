@@ -125,13 +125,16 @@ namespace Lab3
             }
         }
 
-        public void Remove(TKey key)
+        public bool Remove(TKey key)
         {
             var pair = Find(key);
             if (pair == null)
                 throw new ArgumentException();
-            if (pair.DeletePair())
+            if (pair.DeletePair()) {
                 Count--;
+                return true;
+            }
+            return false;
         }
 
         public bool ContainsKey(TKey key)

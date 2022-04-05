@@ -3,7 +3,7 @@
     internal interface IHashTable<in TKey, in TValue>
     {
         void Add(TKey x, TValue y);
-       // bool Remove(TKey x);
+        bool Remove(TKey key);
         bool ContainsKey(TKey x);
     }
 
