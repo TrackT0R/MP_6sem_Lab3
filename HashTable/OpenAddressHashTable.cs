@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Lab3
+namespace HashTable
 {
     public class OpenAddressHashTable<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IHashTable<TKey, TValue> where TKey: IEquatable<TKey>
     {
@@ -13,7 +13,7 @@ namespace Lab3
             8503057, 29986577, 45212107, 99990001, 126247697 };
 
         Pair<TKey, TValue>[] _table;
-        private int _capacity;
+        public int Capacity { get; private set; }
         HashMaker<TKey> _hashMaker1, _hashMaker2;
 
         public int Count { get; private set; }
@@ -21,7 +21,7 @@ namespace Lab3
         #endregion
         
         #region Constructors
-        public OpenAddressHashTable() : this(9973, 0.77)
+        public OpenAddressHashTable() : this(7, 0.77)
         { }
         
         public OpenAddressHashTable(double fillfactor) : this(7, fillfactor)
@@ -33,9 +33,9 @@ namespace Lab3
         public OpenAddressHashTable(int m, double FillFactor)
         {
             _table = new Pair<TKey, TValue>[m];
-            _capacity = m;
-            _hashMaker1 = new HashMaker<TKey>(_capacity);
-            _hashMaker2 = new HashMaker<TKey>(_capacity - 1);
+            Capacity = m;
+            _hashMaker1 = new HashMaker<TKey>(Capacity);
+            _hashMaker2 = new HashMaker<TKey>(Capacity - 1);
             Count = 0;
             this.FillFactor = FillFactor;
         }
@@ -67,16 +67,18 @@ namespace Lab3
             if (!_table[hash].IsDeleted() && _table[hash].Key.Equals(x)) {
                 return _table[hash];
             }
-            int iterationNumber = 1;
+            int iterationNumber = 1, iterationSqrt = 1;
             while (true) {
-                var place = (hash + iterationNumber * (1 + _hashMaker2.ReturnHash(x))) % _capacity;
+                var place = (hash + iterationNumber * (1 + _hashMaker2.ReturnHash(x))) % Capacity;
                 if (_table[place] == null)
                     return null;
                 if (!_table[place].IsDeleted() && _table[place].Key.Equals(x)) {
                     return _table[place];
                 }
-                iterationNumber++;
-                if (iterationNumber >= _capacity)
+                //iterationNumber++;
+                iterationSqrt++;
+                iterationNumber = iterationSqrt * iterationSqrt;
+                if (iterationNumber >= Capacity)
                     return null;
             }
         }
@@ -84,14 +86,14 @@ namespace Lab3
         private void IncreaseTable()
         {
             //если не найдёт, выкинет исключение
-            _capacity = SimpleNumbers.First(item => item > _capacity);
+            Capacity = SimpleNumbers.First(item => item > Capacity);
 
             var oldTable = this._table;
 
-            _table = new Pair<TKey, TValue>[_capacity];
+            _table = new Pair<TKey, TValue>[Capacity];
 
-            _hashMaker1 = new HashMaker<TKey>(_capacity);
-            _hashMaker2 = new HashMaker<TKey>(_capacity - 1);
+            _hashMaker1 = new HashMaker<TKey>(Capacity);
+            _hashMaker2 = new HashMaker<TKey>(Capacity - 1);
 
             Count = 0;
 
@@ -107,20 +109,22 @@ namespace Lab3
         public void Add(TKey key, TValue value)
         {
             var hash = _hashMaker1.ReturnHash(key);
-
             if (!TryToPut(hash, key, value)) // ячейка занята
             {
                 int iterationNumber = 1;
+                int iterationSqrt = 1;
                 while (true) {
-                    var place = (hash + iterationNumber * (1 + _hashMaker2.ReturnHash(key))) % _capacity;
+                    var place = (hash + iterationNumber * (1 + _hashMaker2.ReturnHash(key))) % Capacity;
                     if (TryToPut(place, key, value))
                         break;
-                    iterationNumber++;
-                    if (iterationNumber >= _capacity)
-                        throw new ApplicationException("HashTable full!!!");
+                    //iterationNumber++;
+                    iterationSqrt++;
+                    iterationNumber = iterationSqrt*iterationSqrt;
+                    if (iterationNumber >= Capacity)
+                        throw new ApplicationException("HashTable full!");
                 }
             }
-            if ((double)Count / _capacity >= FillFactor) {
+            if ((double)Count / Capacity >= FillFactor) {
                 IncreaseTable();
             }
         }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Lab3
+namespace HashTable
 {
     public class Pair<TKey, TValue> : IEquatable<Pair<TKey, TValue>>
     {
